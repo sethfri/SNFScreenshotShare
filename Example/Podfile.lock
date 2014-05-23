@@ -1,0 +1,14 @@
+PODS:
+  - SNFScreenshotShare (0.1.0)
+
+DEPENDENCIES:
+  - SNFScreenshotShare (from `../`)
+
+EXTERNAL SOURCES:
+  SNFScreenshotShare:
+    :path: ../
+
+SPEC CHECKSUMS:
+  SNFScreenshotShare: 1e6b03a37b90c7eac4a74ce96421debdf39a6876
+
+COCOAPODS: 0.33.1

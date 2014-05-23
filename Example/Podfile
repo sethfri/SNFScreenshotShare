@@ -1,9 +1,6 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '7.0'
+platform :ios, '7.0'
 
-target "Demo" do
-  pod "SNFScreenshotShare", :path => "../"
-end
+pod "SNFScreenshotShare", :path => "../"
 
 # Uncomment the following lines to add testing dependencies
 # target "DemoTests" do

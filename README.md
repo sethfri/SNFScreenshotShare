@@ -1,5 +1,7 @@
-# SNFScreenshotShare
+SNFScreenshotShare
+==================
 
+A small iOS library for helping users do things with their screenshots.
 [![Version](http://cocoapod-badges.herokuapp.com/v/SNFScreenshotShare/badge.png)](http://cocoadocs.org/docsets/SNFScreenshotShare)
 [![Platform](http://cocoapod-badges.herokuapp.com/p/SNFScreenshotShare/badge.png)](http://cocoadocs.org/docsets/SNFScreenshotShare)
 
