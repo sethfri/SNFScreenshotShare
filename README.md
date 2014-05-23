@@ -25,7 +25,7 @@ SNFScreenshotShare requires iOS 7.0 and above, and it requires ARC.
 ## Installation
 
 SNFScreenshotShare is available through [CocoaPods](http://cocoapods.org). To install
-it simply add the following line to your Podfile:
+it, simply add the following line to your Podfile:
 
 ```
 pod "SNFScreenshotShare"
