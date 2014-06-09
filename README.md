@@ -16,7 +16,7 @@ SNFScreenshotShare is very simple to incorporate into your existing project. In 
 
 The library will then manage all of your users' screenshots for you.
 
-To run the example project; clone the repo, and run `pod install` from the Example directory first.
+To run the example project, clone the repo, and run `pod install` from the Example directory first.
 
 ## Requirements
 
