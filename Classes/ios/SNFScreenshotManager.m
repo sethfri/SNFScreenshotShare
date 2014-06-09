@@ -158,32 +158,39 @@
  *  Fetches, at full resolution, the latest photo taken on the device.
  *
  *  @param completionBlock The block to be executed upon fetching the `UIImage`
- *                         object, with an `NSError` if necessary.
+ *                         object, with an `NSError` if necessary. Called on
+ *                         the main thread.
  */
 - (void)latestPhotoWithCompletionBlock:(void (^)(UIImage *photo, NSError *error))completionBlock {
-    UIImage * __block latestPhoto;
-    
-    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-    
-    [library enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
-                           usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-                               [group setAssetsFilter:[ALAssetsFilter allPhotos]];
-                               
-                               [group enumerateAssetsWithOptions:NSEnumerationReverse
-                                                      usingBlock:^(ALAsset *result, NSUInteger index, BOOL *innerStop) {
-                                                          if (result) {
-                                                              CGImageRef fullResolutionImageRef = [[result defaultRepresentation] fullResolutionImage];
-                                                              latestPhoto = [UIImage imageWithCGImage:fullResolutionImageRef];
-                                                              
-                                                              *innerStop = YES;
-                                                              *stop = YES;
-                                                              
-                                                              completionBlock(latestPhoto, nil);
-                                                          }
-                                                      }];
-                           } failureBlock:^(NSError *error) {
-                               completionBlock(nil, error);
-                           }];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        UIImage * __block latestPhoto;
+        
+        ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+        
+        [library enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
+                               usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+                                   [group setAssetsFilter:[ALAssetsFilter allPhotos]];
+                                   
+                                   [group enumerateAssetsWithOptions:NSEnumerationReverse
+                                                          usingBlock:^(ALAsset *result, NSUInteger index, BOOL *innerStop) {
+                                                              if (result) {
+                                                                  CGImageRef fullResolutionImageRef = [[result defaultRepresentation] fullResolutionImage];
+                                                                  latestPhoto = [UIImage imageWithCGImage:fullResolutionImageRef];
+                                                                  
+                                                                  *innerStop = YES;
+                                                                  *stop = YES;
+                                                                  
+                                                                  dispatch_async(dispatch_get_main_queue(), ^{
+                                                                      completionBlock(latestPhoto, nil);
+                                                                  });
+                                                              }
+                                                          }];
+                               } failureBlock:^(NSError *error) {
+                                   dispatch_async(dispatch_get_main_queue(), ^{
+                                       completionBlock(nil, error);
+                                   });
+                               }];
+    });
 }
 
 /**
