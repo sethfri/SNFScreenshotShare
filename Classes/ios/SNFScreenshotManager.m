@@ -40,7 +40,7 @@
 #pragma mark - Singleton
 
 + (instancetype)sharedManager {
-    static SNFScreenshotManager *_sharedManager = nil;
+    static SNFScreenshotManager *_sharedManager;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _sharedManager = [[SNFScreenshotManager alloc] init];
@@ -100,6 +100,7 @@
     
     if (self.enabled) {
         if (authorizationStatus != ALAuthorizationStatusDenied && authorizationStatus != ALAuthorizationStatusRestricted) {
+            // Check if the user has been asked for permission yet
             if (authorizationStatus == ALAuthorizationStatusNotDetermined) {
                 UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Permission Needed"
                                                                     message:self.photosPermissionMessage
