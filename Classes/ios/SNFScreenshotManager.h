@@ -21,7 +21,7 @@
  *  `AppDelegate application:didFinishLaunchingWithOptions:` you can do so with
  *  the following code:
  *
- *      [[SNFScreenshotManager sharedManager].enabled = YES;
+ *      `[[SNFScreenshotManager sharedManager].enabled = YES;`
  */
 @interface SNFScreenshotManager : NSObject
 
