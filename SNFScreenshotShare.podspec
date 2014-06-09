@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'SNFScreenshotShare'
-  s.version          = '0.1'
+  s.version          = '0.1.1'
   s.summary          = 'A small iOS library for helping users do things with their screenshots.'
   s.homepage         = 'https://github.com/sethfri/SNFScreenshotShare'
   s.license          = 'MIT'
