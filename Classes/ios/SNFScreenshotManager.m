@@ -85,6 +85,12 @@
     }
 }
 
+#pragma mark - Instance Methods
+
+/**
+ *  Displays a `UIActionSheet` in the `visibleViewController` that gives the user
+ *  the option to share the screenshot that they just took.
+ */
 - (void)displayActionSheet {
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"Screenshot"
                                                              delegate:self
@@ -106,22 +112,104 @@
     [actionSheet showInView:self.visibleViewController.view];
 }
 
-- (void)displayActivityViewControllerInViewController:(UIViewController *)viewController {
-    [self latestPhotoWithCompletionBlock:^(UIImage *photo) {
-        UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[photo]
-                                                                                             applicationActivities:self.applicationActivities];
-        activityViewController.excludedActivityTypes = self.excludedActivityTypes;
-        
-        [viewController presentViewController:activityViewController
-                                            animated:YES
-                                          completion:nil];
+/**
+ *  Calls `shareScreenshot` if the user has given permission to access the
+ *  Camera Roll. If the user has not yet been asked for permission, the user is
+ *  prompted for permission using Cluster's method. The method is a no-op if the
+ *  user has denied or restricted permission.
+ */
+- (void)shareScreenshotIfPermitted {
+    ALAuthorizationStatus authorizationStatus = [ALAssetsLibrary authorizationStatus];
+    
+    if (authorizationStatus != ALAuthorizationStatusDenied && authorizationStatus != ALAuthorizationStatusRestricted) {
+        // Check if the user has been asked for permission yet
+        if (authorizationStatus == ALAuthorizationStatusNotDetermined) {
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Permission Needed"
+                                                                message:self.photosPermissionMessage
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
+            
+            alertView.delegate = self;
+            
+            [alertView show];
+        } else {
+            [self shareScreenshot];
+        }
+    }
+}
+
+/**
+ *  Fetches the screenshot just taken and displays a `UIActivityViewController`
+ *  for the user to do something with that screenshot.
+ */
+- (void)shareScreenshot {
+    [self latestPhotoWithCompletionBlock:^(UIImage *photo, NSError *error) {
+        if (photo) {
+            [self displayActivityViewControllerInViewController:self.visibleViewController
+                                              withActivityItems:@[photo]];
+        } else {
+            NSLog(@"Photo Error: %@", [error description]);
+        }
     }];
+}
+
+/**
+ *  Fetches, at full resolution, the latest photo taken on the device.
+ *
+ *  @param completionBlock The block to be executed upon fetching the `UIImage`
+ *                         object, with an `NSError` if necessary.
+ */
+- (void)latestPhotoWithCompletionBlock:(void (^)(UIImage *photo, NSError *error))completionBlock {
+    UIImage * __block latestPhoto;
+    
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    
+    [library enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
+                           usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+                               [group setAssetsFilter:[ALAssetsFilter allPhotos]];
+                               
+                               [group enumerateAssetsWithOptions:NSEnumerationReverse
+                                                      usingBlock:^(ALAsset *result, NSUInteger index, BOOL *innerStop) {
+                                                          if (result) {
+                                                              CGImageRef fullResolutionImageRef = [[result defaultRepresentation] fullResolutionImage];
+                                                              latestPhoto = [UIImage imageWithCGImage:fullResolutionImageRef];
+                                                              
+                                                              *innerStop = YES;
+                                                              *stop = YES;
+                                                              
+                                                              completionBlock(latestPhoto, nil);
+                                                          }
+                                                      }];
+                           } failureBlock:^(NSError *error) {
+                               completionBlock(nil, error);
+                           }];
+}
+
+/**
+ *  Creates and presents a simple `UIActivityViewController` using
+ *  `applicationActivities` and `excludedActivityTypes`.
+ *
+ *  @param viewController The view controller that should present the
+ *                        `UIAcitivityViewController`.
+ *  @param activityItems  The array of data objects on which to perform the
+ *                        activity. See the `UIActivityViewController`
+ *                        documentation for more information.
+ */
+- (void)displayActivityViewControllerInViewController:(UIViewController *)viewController withActivityItems:(NSArray *)activityItems {
+    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:activityItems
+                                                                                         applicationActivities:self.applicationActivities];
+    activityViewController.excludedActivityTypes = self.excludedActivityTypes;
+    
+    [viewController presentViewController:activityViewController
+                                 animated:YES
+                               completion:nil];
 }
 
 #pragma mark - Alert View Delegate
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    [self displayActivityViewControllerInViewController:self.visibleViewController];
+    [self shareScreenshot];
 }
 
 #pragma mark - Action Sheet Delegate
@@ -129,7 +217,7 @@
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
     switch (buttonIndex) {
         case 0: // Share
-            [self askForPhotosPermission];
+            [self shareScreenshotIfPermitted];
             break;
             
         default: // Cancel
