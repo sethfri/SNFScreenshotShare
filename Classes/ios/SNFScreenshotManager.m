@@ -24,17 +24,16 @@
     self = [super init];
     
     if (self) {
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(displayActionSheet)
-                                                     name:UIApplicationUserDidTakeScreenshotNotification
-                                                   object:nil];
+        _enabled = NO;
     }
     
     return self;
 }
 
 - (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    if (self.enabled) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
+    }
 }
 
 #pragma mark - Singleton
@@ -69,51 +68,19 @@
     return _excludedActivityTypes;
 }
 
-- (void)latestPhotoWithCompletionBlock:(void (^)(UIImage *photo))completionBlock {
-    UIImage * __block latestPhoto;
-    
-    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-    
-    [library enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
-                           usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-                               [group setAssetsFilter:[ALAssetsFilter allPhotos]];
-                               
-                               [group enumerateAssetsWithOptions:NSEnumerationReverse
-                                                      usingBlock:^(ALAsset *result, NSUInteger index, BOOL *innerStop) {
-                                                          if (result) {
-                                                              CGImageRef fullResolutionImageRef = [[result defaultRepresentation] fullResolutionImage];
-                                                              latestPhoto = [UIImage imageWithCGImage:fullResolutionImageRef];
-                                                              
-                                                              *innerStop = YES;
-                                                              *stop = YES;
-                                                              
-                                                              completionBlock(latestPhoto);
-                                                          }
-                                                      }];
-                           } failureBlock:^(NSError *error) {
-                               NSLog(@"Photo Error: %@", [error description]);
-                           }];
-}
+#pragma mark - Custom Setter
 
-- (void)askForPhotosPermission {
-    ALAuthorizationStatus authorizationStatus = [ALAssetsLibrary authorizationStatus];
-    
-    if (self.enabled) {
-        if (authorizationStatus != ALAuthorizationStatusDenied && authorizationStatus != ALAuthorizationStatusRestricted) {
-            // Check if the user has been asked for permission yet
-            if (authorizationStatus == ALAuthorizationStatusNotDetermined) {
-                UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Permission Needed"
-                                                                    message:self.photosPermissionMessage
-                                                                   delegate:nil
-                                                          cancelButtonTitle:@"OK"
-                                                          otherButtonTitles:nil];
-                
-                alertView.delegate = self;
-                
-                [alertView show];
-            } else {
-                [self displayActivityViewControllerInViewController:self.visibleViewController];
-            }
+- (void)setEnabled:(BOOL)enabled {
+    if (_enabled != enabled) {
+        _enabled = enabled;
+        
+        if (_enabled) {
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(displayActionSheet)
+                                                         name:UIApplicationUserDidTakeScreenshotNotification
+                                                       object:nil];
+        } else {
+            [[NSNotificationCenter defaultCenter] removeObserver:self];
         }
     }
 }
