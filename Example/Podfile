@@ -1,9 +1,0 @@
-platform :ios, '7.0'
-
-pod "SNFScreenshotShare", :path => "../"
-
-# Uncomment the following lines to add testing dependencies
-# target "DemoTests" do
-#   pod 'Expecta'
-# end
-
