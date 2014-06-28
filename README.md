@@ -6,6 +6,8 @@ SNFScreenshotShare
 
 SNFScreenshotShare is a small iOS library for helping users do things with their screenshots. Often, users take screenshots because they want to share those images with others, but iOS doesn't offer any sort of prompt. Users are forced to close your app, open Photos, and share from there. SNFScreenshotShare listens for when your users take a screenshot and immediately offers them a `UIActivityViewController` to take action.
 
+![My image](https://sethfri.github.io/SNFScreenshotShare/ScreenshotShare.gif)
+
 ## Usage
 
 SNFScreenshotShare is very simple to incorporate into your existing project. In your app delegate's `application:didFinishLaunchingWithOptions:`, just add one line:
